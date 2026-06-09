@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>中性笔笔芯测试结论复盘</title>
+  <style>
+    :root {
+      --ink: #0b2447;
+      --muted: #5d6b82;
+      --line: #dfe5ee;
+      --paper: #f6f8fb;
+      --card: #ffffff;
+      --blue: #1f6feb;
+      --green: #16a34a;
+      --orange: #f97316;
+      --red: #dc2626;
+      --slate: #334155;
+      --shadow: 0 10px 28px rgba(15, 35, 68, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    header {
+      padding: 28px 36px 18px;
+      background: linear-gradient(180deg, #fff 0%, #f6f8fb 100%);
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 1120px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    main {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 22px 24px 48px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      padding: 10px 0;
+      background: rgba(246, 248, 251, .94);
+      backdrop-filter: blur(8px);
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--slate);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button.active {
+      border-color: var(--blue);
+      background: #eaf2ff;
+      color: #0f4fb8;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2, .card h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .card .body { padding: 18px; }
+    .card .head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .pill.green { color: #087338; background: #e9f8ef; }
+    .pill.orange { color: #a54c00; background: #fff1e6; }
+    .pill.red { color: #b91c1c; background: #fee2e2; }
+    .pill.blue { color: #0f4fb8; background: #eaf2ff; }
+    .pill.gray { color: #475569; background: #eef2f7; }
+
+    .verdict {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .verdict .item {
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .item p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .product-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .product {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .product.selected {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px #dbeafe;
+    }
+
+    .product-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .product-title strong { font-size: 16px; }
+    .supplier { color: var(--muted); font-size: 13px; margin-top: 3px; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .metric {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 8px;
+      min-height: 56px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .metric b { font-size: 15px; }
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+      margin-top: 8px;
+    }
+
+    .chart-box {
+      min-height: 360px;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 100%;
+      height: 340px;
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #334155;
+      background: #f8fafc;
+      position: sticky;
+      top: 56px;
+      z-index: 2;
+    }
+
+    tr.highlight { background: #f0f7ff; }
+    .risk { color: var(--red); font-weight: 700; }
+    .ok { color: var(--green); font-weight: 700; }
+    .warn { color: var(--orange); font-weight: 700; }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #fff;
+      margin-top: 12px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 980px) {
+      header { padding: 22px 18px 14px; }
+      h1 { font-size: 26px; }
+      main { padding: 16px; }
+      .grid, .verdict { grid-template-columns: 1fr; }
+      .product-list { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>中性笔笔芯定款结论</h1>
+    <div class="subtitle">
+      基于机构检测与人工书写测试结果，刷题笔与考试笔分别按使用场景定款。刷题笔围绕“顺滑 + 速干”建立主推组合，考试笔围绕“出墨稳定 + 防水优秀”建立主推组合，最终用于产品立项、打样优化与供应商推进。
+    </div>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <button class="tab active" data-view="overview">定款总览</button>
+      <button class="tab" data-view="study">刷题笔</button>
+      <button class="tab" data-view="exam">考试笔</button>
+      <button class="tab" data-view="all">全型号数据</button>
+      <button class="tab" data-view="talk">最终方向</button>
+    </div>
+
+    <section id="overview" class="view">
+      <div class="verdict">
+        <div class="item">
+          <span class="pill green">刷题笔定款</span>
+          <strong>SHT02-5 与 SG03-5 形成双主推组合</strong>
+          <p>SHT02-5 承担“极致顺滑 + 速干不脏手”，SG03-5 承担“出墨稳定 + 防水优秀”。两款覆盖刷题场景的核心痛点。</p>
+        </div>
+        <div class="item">
+          <span class="pill green">考试笔定款</span>
+          <strong>CG01-5 为考试笔首选主推</strong>
+          <p>CG01-5 在速干、防水、浓黑和综合分上表现完整，承接“不脏卷、不晕染、扫得清”的考试核心诉求。</p>
+        </div>
+        <div class="item">
+          <span class="pill blue">产品矩阵</span>
+          <strong>CG02-5 与 CG03-5 构成考试笔补充层</strong>
+          <p>CG02-5 定位基础 SKU，CG03-5 定位“浓黑清晰 + 防水优秀”卖点款，形成首推款、基础款、卖点款三层结构。</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="head">
+            <h2>定款结构</h2>
+            <span class="pill blue">按场景分层</span>
+          </div>
+          <div class="body">
+            <table>
+              <thead>
+                <tr><th>项目</th><th>产品定位</th><th>型号</th><th>定款判断</th></tr>
+              </thead>
+              <tbody>
+                <tr class="highlight"><td>刷题笔</td><td>核心主推</td><td>SHT02-5 恒通掘色速干</td><td class="ok">定款。顺滑、速干、综合表现最贴主卖点。</td></tr>
+                <tr class="highlight"><td>刷题笔</td><td>品质稳定款</td><td>SG03-5 金元素</td><td class="ok">定款。主卖点聚焦“出墨稳定 + 防水优秀”。</td></tr>
+                <tr><td>刷题笔</td><td>储备款</td><td>SG02-5 上海杰德</td><td class="warn">进入储备池。速干防水好，书写阻力偏高。</td></tr>
+                <tr class="highlight"><td>考试笔</td><td>核心主推</td><td>CG01-5 金元素乐飞士</td><td class="ok">定款。考试场景指标最完整。</td></tr>
+                <tr class="highlight"><td>考试笔</td><td>基础 SKU</td><td>CG02-5 上海杰德670T</td><td class="ok">定款。承接全场景基础考试需求。</td></tr>
+                <tr><td>考试笔</td><td>浓黑清晰款</td><td>CG03-5 上海杰德</td><td class="warn">进入主推矩阵，承担浓黑清晰卖点。</td></tr>
+                <tr><td>考试笔</td><td>非主推</td><td>CHT03-5 恒通掘色</td><td class="risk">退出本轮主推矩阵。防水与综合分不支撑考试主场景。</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="head">
+            <h2>性能画像</h2>
+            <span class="pill gray">点击型号切换</span>
+          </div>
+          <div class="body chart-box">
+            <canvas id="radar"></canvas>
+            <div class="note" id="radarNote"></div>
+          </div>
+        </div>
+      </div>
+
+      <details open>
+        <summary>最终定款结论</summary>
+        <p class="note">
+          刷题笔采用“双主推”结构：SHT02-5 负责顺滑速干，SG03-5 负责稳定防水。两款分别覆盖高频刷题的手感效率与书写稳定性。
+          考试笔采用“三层主推矩阵”：CG01-5 为首选主推，CG02-5 为基础 SKU，CG03-5 为浓黑清晰款。该组合覆盖“不脏卷、不晕染、扫得清、稳定输出”的考试场景。
+        </p>
+      </details>
+
+      <details open>
+        <summary>产品推进方向</summary>
+        <p class="note">
+          刷题笔主推锁定 SHT02-5 恒通掘色速干和 SG03-5 金元素。SHT02-5 作为核心主推，主打“顺滑 + 速干不脏手”；SG03-5 作为品质稳定款，主打“出墨稳定 + 防水优秀”。
+          考试笔主推锁定 CG01-5 金元素乐飞士、CG02-5 上海杰德670T、CG03-5 上海杰德。CG01-5 做首选主推，CG02-5 做基础 SKU，CG03-5 做浓黑清晰款。
+        </p>
+      </details>
+    </section>
+
+    <section id="study" class="view hidden">
+      <div class="grid">
+        <div class="card">
+          <div class="head">
+            <h2>刷题笔型号对比</h2>
+            <span class="pill green">主打：顺滑 + 速干</span>
+          </div>
+          <div class="body">
+            <div class="toolbar" id="studyFilters"></div>
+            <div class="product-list" id="studyList"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="head"><h2>场景适配图</h2><span class="pill blue">雷达图</span></div>
+          <div class="body">
+            <canvas id="studyRadar"></canvas>
+            <div class="note" id="studyNote"></div>
+          </div>
+        </div>
+      </div>
+      <details open>
+        <summary>刷题笔定款逻辑</summary>
+        <p class="note">
+          SHT02-5 是“顺滑 + 速干”的核心主推，承担刷题笔的第一卖点。SG03-5 综合分接近，出墨差值最低且防水优秀，承担稳定品质款。SG02-5 进入储备池，作为速干防水方向的后续补充。
+        </p>
+      </details>
+    </section>
+
+    <section id="exam" class="view hidden">
+      <div class="grid">
+        <div class="card">
+          <div class="head">
+            <h2>考试笔型号对比</h2>
+            <span class="pill green">主打：稳定 + 防水</span>
+          </div>
+          <div class="body">
+            <div class="toolbar" id="examFilters"></div>
+            <div class="product-list" id="examList"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="head"><h2>考试指标图</h2><span class="pill blue">雷达图</span></div>
+          <div class="body">
+            <canvas id="examRadar"></canvas>
+            <div class="note" id="examNote"></div>
+          </div>
+        </div>
+      </div>
+      <details open>
+        <summary>考试笔定款逻辑</summary>
+        <p class="note">
+          CG01-5 是考试笔首选主推款，速干、防水、浓黑和综合分完整领先。CG02-5 承担基础 SKU，覆盖稳定考试需求。CG03-5 上海杰德承担“浓黑清晰 + 防水优秀”卖点款。CHT03-5 恒通掘色退出考试笔主推矩阵。
+        </p>
+      </details>
+    </section>
+
+    <section id="all" class="view hidden">
+      <div class="card">
+        <div class="head"><h2>全型号结构化数据</h2><span class="pill gray">由三张截图整理</span></div>
+        <div class="body" style="overflow:auto">
+          <table id="allTable"></table>
+        </div>
+      </div>
+    </section>
+
+    <section id="talk" class="view hidden">
+      <div class="card">
+        <div class="head"><h2>最终方向</h2><span class="pill blue">决策口径</span></div>
+        <div class="body">
+          <details open>
+            <summary>定款口径</summary>
+            <p class="note">
+              刷题笔采用“双主推”：SHT02-5 负责顺滑速干，SG03-5 负责稳定防水，两款覆盖刷题场景的核心需求。考试笔采用“三层结构”：CG01-5 做首选主推，CG02-5 做基础 SKU，CG03-5 做浓黑清晰卖点款。
+            </p>
+          </details>
+          <details>
+            <summary>产品组合策略</summary>
+            <p class="note">
+              定款逻辑按场景痛点分层。刷题笔优先解决长时间书写顺滑和翻页不脏手，SHT02-5 承担效率型主推，SG03-5 承担稳定型主推。考试笔优先保证不蹭墨、不晕染、扫描清晰，CG01-5 承担核心主推，CG02-5 承担基础覆盖，CG03-5 承担浓黑清晰卖点。
+            </p>
+          </details>
+          <details>
+            <summary>后续推进动作</summary>
+            <p class="note">
+              第一，锁定五款进入供应商推进：SHT02-5、SG03-5、CG01-5、CG02-5、CG03-5。第二，围绕主卖点安排二轮打样：SHT02-5 强化速干，SG03-5 强化稳定防水，CG01-5 维持全优指标，CG02-5 控制基础款成本，CG03-5 强化浓黑清晰。第三，主推款进入 20 人以上盲测，验证真实手感、翻页蹭墨和连续书写稳定性。
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const studyPens = [
+      {id:"SHT02-5", supplier:"S 恒通掘色速干", score:8.35, resistance:0.1586, diff:3.91, ink:469.27, fast:"优秀", water:"一般", rank:"核心主推", conclusion:"顺滑度全场第一，速干拉满，工厂配合度高，承担刷题笔核心 SKU。", risk:"防水作为二轮优化项"},
+      {id:"SG03-5", supplier:"S 金元素", score:8.03, resistance:0.1932, diff:2.70, ink:434.66, fast:"一般", water:"优秀", rank:"品质稳定款", conclusion:"出墨稳定性全场第一，防水优秀，工厂研发实力强，承担稳定型主推。", risk:"速干作为二轮优化项"},
+      {id:"SG01-5", supplier:"S 好雅利", score:7.97, resistance:0.1664, diff:3.10, ink:401.56, fast:"一般", water:"优秀", rank:"储备款", conclusion:"顺滑、稳定、省墨均衡，进入后续供应商储备池。", risk:"工厂迭代能力待压测"},
+      {id:"SG02-5", supplier:"S 上海杰德", score:7.22, resistance:0.2232, diff:5.00, ink:447.90, fast:"优秀", water:"优秀", rank:"储备款", conclusion:"速干和防水双优，承担速干防水方向储备。", risk:"书写阻力作为优化项"},
+      {id:"S03-5", supplier:"S 百乐", score:6.78, resistance:0.2280, diff:3.26, ink:461.62, fast:"优秀", water:"一般", rank:"淘汰", conclusion:"速干优秀但手感偏涩，不匹配高频刷题场景。", risk:"顺滑不足"},
+      {id:"SHT01-5", supplier:"S 恒通 mikuni90", score:6.65, resistance:0.1750, diff:4.83, ink:467.23, fast:"一般", water:"优秀", rank:"淘汰", conclusion:"顺滑与防水尚可，卖点锋利度不足。", risk:"卖点不够尖锐"},
+      {id:"S01-5", supplier:"S 晨光子弹头", score:5.68, resistance:0.2146, diff:5.66, ink:572.80, fast:"一般", water:"优秀", rank:"淘汰", conclusion:"耗墨量最高，出墨波动大，核心指标全面落后。", risk:"耗墨量过高"},
+      {id:"S02-5", supplier:"S 晨光ST头", score:5.57, resistance:0.2244, diff:6.24, ink:509.74, fast:"优秀", water:"优秀", rank:"淘汰", conclusion:"书写阻力和出墨稳定性双垫底，综合表现最差。", risk:"顺滑和稳定性不足"}
+    ];
+
+    const examPens = [
+      {id:"CG01-5", supplier:"C 金元素乐飞士", score:9.45, resistance:0.2368, diff:4.56, black:9, fast:"优秀", water:"优秀", rank:"首选主推", conclusion:"速干、防水、浓黑、综合分全优，承担考试笔核心 SKU。", risk:"书写阻力作为二轮手感优化项"},
+      {id:"C01-5", supplier:"C 得力V77", score:8.55, resistance:0.2222, diff:2.70, black:6, fast:"优秀", water:"优秀", rank:"储备款", conclusion:"速干和防水双优，进入考试笔供应商储备池。", risk:"浓黑度作为优化项"},
+      {id:"CG03-5", supplier:"C 上海杰德", score:8.05, resistance:0.1776, diff:3.66, black:9, fast:"一般", water:"优秀", rank:"浓黑清晰款", conclusion:"防水和浓黑双优，承担浓黑清晰卖点款。", risk:"速干作为二轮优化项"},
+      {id:"CG02-5", supplier:"C 上海杰德670T", score:7.75, resistance:0.1760, diff:3.68, black:8, fast:"一般", water:"优秀", rank:"基础SKU", conclusion:"防水优秀，浓黑达标，承担考试笔基础 SKU。", risk:"速干作为二轮优化项"},
+      {id:"C02-5", supplier:"C 图米", score:7.25, resistance:0.2014, diff:35.66, black:10, fast:"中等", water:"优秀", rank:"淘汰", conclusion:"浓黑度满分，出墨差值超出主推标准。", risk:"出墨稳定性不达标"},
+      {id:"C03-5", supplier:"C 点石5A", score:6.50, resistance:0.1874, diff:2.92, black:6, fast:"中等", water:"优秀", rank:"淘汰", conclusion:"浓黑度偏低，扫描清晰度支撑不足。", risk:"浓黑度不达标"},
+      {id:"CG04-5", supplier:"C 好雅利", score:6.30, resistance:0.2104, diff:5.08, black:8, fast:"中等", water:"一般", rank:"淘汰", conclusion:"速干、防水、出墨稳定性未形成核心优势。", risk:"卖点不集中"},
+      {id:"CHT03-5", supplier:"C 恒通掘色", score:5.95, resistance:0.1752, diff:6.60, black:7, fast:"优秀", water:"一般", rank:"非主推", conclusion:"速干较好，防水、浓黑和综合分不进入考试笔主推标准。", risk:"考试核心痛点支撑不足"},
+      {id:"CG05-5", supplier:"C 金元素掘色", score:5.90, resistance:0.2036, diff:7.44, black:8, fast:"中等", water:"一般", rank:"淘汰", conclusion:"速干、防水、稳定性未形成突出优势。", risk:"综合表现偏弱"}
+    ];
+
+    const selected = { study: ["SHT02-5", "SG03-5"], exam: ["CG01-5", "CG02-5", "CG03-5"] };
+
+    function levelValue(text) {
+      return text === "优秀" ? 10 : text === "中等" ? 6 : 4;
+    }
+
+    function normalized(p, mode) {
+      const maxScore = mode === "exam" ? 9.45 : 8.35;
+      const maxDiff = mode === "exam" ? 35.66 : 6.24;
+      const minResistance = mode === "exam" ? 0.1752 : 0.1586;
+      const maxResistance = mode === "exam" ? 0.2368 : 0.2280;
+      const smooth = 10 - ((p.resistance - minResistance) / (maxResistance - minResistance)) * 6;
+      const stable = 10 - (p.diff / maxDiff) * 7;
+      return [
+        {label:"综合", value: Math.max(0, p.score / maxScore * 10)},
+        {label:"顺滑", value: Math.max(0, Math.min(10, smooth))},
+        {label:"速干", value: levelValue(p.fast)},
+        {label:"防水", value: levelValue(p.water)},
+        {label:"稳定", value: Math.max(0, Math.min(10, stable))},
+        {label: mode === "exam" ? "浓黑" : "省墨", value: mode === "exam" ? p.black : Math.max(0, 10 - ((p.ink - 401.56) / (572.8 - 401.56)) * 6)}
+      ];
+    }
+
+    function drawRadar(canvas, pens, mode) {
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+
+      const cx = rect.width / 2;
+      const cy = rect.height / 2 + 8;
+      const radius = Math.min(rect.width, rect.height) * .33;
+      const labels = normalized(pens[0], mode).map(d => d.label);
+      const colors = ["#1f6feb", "#16a34a", "#f97316", "#dc2626", "#7c3aed"];
+
+      ctx.strokeStyle = "#dfe5ee";
+      ctx.fillStyle = "#5d6b82";
+      ctx.font = "12px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+
+      for (let ring = 1; ring <= 5; ring++) {
+        ctx.beginPath();
+        labels.forEach((_, i) => {
+          const angle = -Math.PI / 2 + i * Math.PI * 2 / labels.length;
+          const r = radius * ring / 5;
+          const x = cx + Math.cos(angle) * r;
+          const y = cy + Math.sin(angle) * r;
+          i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+        });
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      labels.forEach((label, i) => {
+        const angle = -Math.PI / 2 + i * Math.PI * 2 / labels.length;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+        ctx.stroke();
+        const lx = cx + Math.cos(angle) * (radius + 28);
+        const ly = cy + Math.sin(angle) * (radius + 24);
+        ctx.textAlign = lx < cx - 8 ? "right" : lx > cx + 8 ? "left" : "center";
+        ctx.fillText(label, lx, ly);
+      });
+
+      pens.forEach((pen, idx) => {
+        const data = normalized(pen, mode);
+        ctx.beginPath();
+        data.forEach((d, i) => {
+          const angle = -Math.PI / 2 + i * Math.PI * 2 / data.length;
+          const r = radius * d.value / 10;
+          const x = cx + Math.cos(angle) * r;
+          const y = cy + Math.sin(angle) * r;
+          i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+        });
+        ctx.closePath();
+        ctx.globalAlpha = .15;
+        ctx.fillStyle = colors[idx % colors.length];
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = colors[idx % colors.length];
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      let lx = 16;
+      pens.forEach((pen, idx) => {
+        ctx.fillStyle = colors[idx % colors.length];
+        ctx.fillRect(lx, 16, 10, 10);
+        ctx.fillStyle = "#334155";
+        ctx.textAlign = "left";
+        ctx.fillText(pen.id, lx + 16, 26);
+        lx += ctx.measureText(pen.id).width + 54;
+      });
+    }
+
+    function productCard(p, mode) {
+      const status = p.rank.includes("主推") || p.rank.includes("首选") || p.rank.includes("基础") || p.rank.includes("稳定") || p.rank.includes("浓黑") ? "green" : p.rank.includes("储备") ? "orange" : "red";
+      const selectedClass = selected[mode].includes(p.id) ? " selected" : "";
+      const inkMetric = mode === "exam" ? `<div class="metric"><span>浓黑度</span><b>${p.black} 分</b></div>` : `<div class="metric"><span>全程耗墨量</span><b>${p.ink}</b></div>`;
+      return `
+        <div class="product${selectedClass}" data-id="${p.id}" data-mode="${mode}">
+          <div class="product-title">
+            <div><strong>${p.id}</strong><div class="supplier">${p.supplier}</div></div>
+            <span class="pill ${status}">${p.rank}</span>
+          </div>
+          <div class="metrics">
+            <div class="metric"><span>综合得分</span><b>${p.score}</b></div>
+            <div class="metric"><span>书写阻力</span><b>${p.resistance}</b></div>
+            <div class="metric"><span>出墨差值</span><b>${p.diff}</b></div>
+            <div class="metric"><span>速干</span><b>${p.fast}</b></div>
+            <div class="metric"><span>防水</span><b>${p.water}</b></div>
+            ${inkMetric}
+          </div>
+          <div class="note">${p.conclusion}</div>
+          <div class="note"><b>管控项：</b>${p.risk}</div>
+        </div>
+      `;
+    }
+
+    function renderList(mode, filter = "all") {
+      const list = mode === "study" ? studyPens : examPens;
+      const root = document.getElementById(`${mode}List`);
+      const shown = filter === "all" ? list : list.filter(p => selected[mode].includes(p.id));
+      root.innerHTML = shown.map(p => productCard(p, mode)).join("");
+      root.querySelectorAll(".product").forEach(el => {
+        el.addEventListener("click", () => {
+          const pen = list.find(p => p.id === el.dataset.id);
+          drawRadar(document.getElementById(`${mode}Radar`), [pen], mode);
+          document.getElementById(`${mode}Note`).innerHTML = `<b>${pen.id} ${pen.supplier}</b>：${pen.conclusion}<br><b>管控项：</b>${pen.risk}`;
+          root.querySelectorAll(".product").forEach(x => x.classList.remove("selected"));
+          el.classList.add("selected");
+        });
+      });
+      const radarPens = shown.slice(0, Math.min(3, shown.length));
+      drawRadar(document.getElementById(`${mode}Radar`), radarPens, mode);
+      document.getElementById(`${mode}Note`).textContent = filter === "all" ? "当前展示排名靠前的 3 款，点击左侧型号查看单款特性。" : "当前展示已定主推组合。";
+    }
+
+    function renderFilters(mode) {
+      const root = document.getElementById(`${mode}Filters`);
+      root.innerHTML = `
+        <button class="active" data-filter="all">查看全部</button>
+        <button data-filter="recommended">只看定款组合</button>
+      `;
+      root.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          root.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          renderList(mode, btn.dataset.filter === "recommended" ? "recommended" : "all");
+        });
+      });
+    }
+
+    function renderTable() {
+      const rows = [
+        ...studyPens.map(p => ({project:"刷题笔", ...p})),
+        ...examPens.map(p => ({project:"考试笔", ...p}))
+      ];
+      document.getElementById("allTable").innerHTML = `
+        <thead><tr><th>项目</th><th>型号</th><th>供方</th><th>综合分</th><th>书写阻力</th><th>出墨差值</th><th>速干</th><th>防水</th><th>浓黑/耗墨</th><th>定位</th><th>管控项</th></tr></thead>
+        <tbody>
+          ${rows.map(p => `<tr>
+            <td>${p.project}</td><td>${p.id}</td><td>${p.supplier}</td><td>${p.score}</td><td>${p.resistance}</td><td>${p.diff}</td><td>${p.fast}</td><td>${p.water}</td><td>${p.black ? p.black + " 分" : p.ink}</td><td>${p.rank}</td><td>${p.risk}</td>
+          </tr>`).join("")}
+        </tbody>
+      `;
+    }
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+        document.getElementById(tab.dataset.view).classList.remove("hidden");
+        requestAnimationFrame(() => {
+          drawRadar(document.getElementById("radar"), [studyPens[0], studyPens[1], examPens[0]], "study");
+          drawRadar(document.getElementById("studyRadar"), studyPens.slice(0, 3), "study");
+          drawRadar(document.getElementById("examRadar"), examPens.slice(0, 3), "exam");
+        });
+      });
+    });
+
+    renderFilters("study");
+    renderFilters("exam");
+    renderList("study");
+    renderList("exam");
+    renderTable();
+    drawRadar(document.getElementById("radar"), [studyPens[0], studyPens[1], examPens[0]], "study");
+    document.getElementById("radarNote").innerHTML = "默认对比刷题主推 SHT02-5、SG03-5 和考试首推 CG01-5。注意：此总览雷达图把考试笔按刷题维度近似展示，只用于快速看强弱，不替代分项目图。";
+
+    window.addEventListener("resize", () => {
+      drawRadar(document.getElementById("radar"), [studyPens[0], studyPens[1], examPens[0]], "study");
+      drawRadar(document.getElementById("studyRadar"), studyPens.slice(0, 3), "study");
+      drawRadar(document.getElementById("examRadar"), examPens.slice(0, 3), "exam");
+    });
+  </script>
+</body>
+</html>
